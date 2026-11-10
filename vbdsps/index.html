@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ВБДСПС — Всероссийская база данных спортсменов парусного спорта</title>
+<meta name="description" content="Единый народный реестр и поиск спортсменов парусного спорта России: разряды, тренеры, яхт-клубы и классы яхт. Добавь свой профиль в базу!">
+<meta name="keywords" content="ВБДСПС, парусный спорт, база спортсменов, яхтсмены, разряды, регата, ракета 270, оптимист, лазер">
+<meta property="og:title" content="ВБДСПС — База данных спортсменов парусного спорта">
+<meta property="og:description" content="Найди яхтсмена по ФИО или разряду, узнай тренера и клуб. Добавь свою карточку в единый справочник!">
+<meta property="og:type" content="website">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:#eaf4fb;color:#0a2540;min-height:100vh}
+header{background:linear-gradient(160deg,#04213f,#0b4a8a 60%,#1b84c9);color:#fff;text-align:center;padding:28px 16px 56px;position:relative;overflow:hidden}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:30px;background:#eaf4fb;border-radius:50% 50% 0 0/100% 100% 0 0}
+.logo{font-size:46px;line-height:1}
+h1{font-size:38px;letter-spacing:4px;margin-top:6px;font-weight:800}
+.sub{font-size:13px;opacity:.9;margin-top:6px;letter-spacing:.5px;max-width:340px;margin-left:auto;margin-right:auto}
+main{max-width:900px;margin:-26px auto 0;padding:0 14px 30px;position:relative;z-index:2}
+.search{display:flex;justify-content:center}
+.search input{width:100%;max-width:560px;padding:15px 18px;font-size:16px;border:2px solid #bfe0f5;border-radius:30px;outline:none;background:#fff;box-shadow:0 6px 18px rgba(11,74,138,.18)}
+.search input:focus{border-color:#1b84c9}
+.bar{display:flex;justify-content:space-between;align-items:center;margin:18px 4px 10px;gap:10px}
+.count{font-size:14px;color:#3d6a91}
+button{font-family:inherit;cursor:pointer;border:none}
+.add{background:#0b4a8a;color:#fff;padding:12px 18px;border-radius:24px;font-size:15px;font-weight:600;box-shadow:0 4px 12px rgba(11,74,138,.3)}
+.add:active{transform:scale(.97)}
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:640px){.grid{grid-template-columns:1fr 1fr}}
+.card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 4px 14px rgba(10,37,64,.1);border-top:4px solid #3aa3e0}
+.top{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.ava{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#0b4a8a,#3aa3e0);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ava svg{width:38px;height:38px}
+.name{font-size:17px;font-weight:700;line-height:1.2}
+.rank{display:inline-block;margin-top:5px;background:#dff1fc;color:#0b4a8a;font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px}
+.row{font-size:14px;padding:6px 0;border-top:1px solid #edf4f9;display:flex;gap:8px}
+.row b{color:#3d6a91;min-width:92px;font-weight:600}
+.msg{text-align:center;padding:40px 10px;color:#3d6a91;display:none}
+.msg.show{display:block}
+.overlay{position:fixed;inset:0;background:rgba(4,33,63,.65);display:none;align-items:flex-end;justify-content:center;z-index:10}
+.overlay.open{display:flex}
+.modal{background:#fff;width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:20px;max-height:92vh;overflow-y:auto}
+.modal h2{font-size:20px;margin-bottom:14px;color:#0b4a8a}
+.modal label.lbl{display:block;font-size:13px;color:#3d6a91;margin:10px 0 4px;font-weight:600}
+.modal input[type="text"],.modal select{width:100%;padding:12px;font-size:16px;border:2px solid #d3e8f6;border-radius:12px;outline:none;background:#fff;color:#0a2540}
+.modal input:focus,.modal select:focus{border-color:#1b84c9}
+.agree{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:12px;color:#3d6a91;line-height:1.35;cursor:pointer}
+.agree input{width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:#0b4a8a}
+.btns{display:flex;gap:10px;margin-top:16px}
+.btns button{flex:1;padding:14px;border-radius:14px;font-size:16px;font-weight:700}
+.send{background:#0b4a8a;color:#fff}
+.send:disabled{opacity:.6}
+.cancel{background:#e3eef6;color:#0b4a8a}
+.status{margin-top:14px;padding:12px;border-radius:12px;font-size:14px;display:none;text-align:center}
+.status.ok{display:block;background:#e0f7ea;color:#126b3a}
+.status.err{display:block;background:#fde8e8;color:#a12020}
+footer{max-width:700px;margin:0 auto;text-align:center;font-size:12px;color:#5c809e;padding:16px 14px 28px;line-height:1.5;border-top:1px solid #d4e7f5}
+footer a{color:#0b4a8a;font-weight:600;text-decoration:none}
+.disc{font-size:11px;color:#7a9bb5;margin-top:8px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">&#9973;</div>
+  <h1>ВБДСПС</h1>
+  <div class="sub">Всероссийская База Данных Спортсменов Парусного Спорта</div>
+</header>
+
+<main>
+  <div class="search">
+    <input id="q" type="search" placeholder="&#128269; Поиск по ФИО или разряду..." autocomplete="off">
+  </div>
+  <div class="bar">
+    <span class="count" id="count"></span>
+    <button class="add" id="openBtn">&#10133; Добавить профиль</button>
+  </div>
+  <div class="grid" id="list"></div>
+  <div class="msg" id="msg"></div>
+</main>
+
+<footer>
+  <div><b>Поддержка и удаление анкет:</b> Telegram <a href="https://t.me" target="_blank">@Ozimit</a> &#183; Тел: <b>+7 900 024-16-17</b> (только сообщения)</div>
+  <div class="disc">Все анкеты добавляются пользователями добровольно. Администрация сайта не несет ответственности за достоверность данных, размещенных третьими лицами.</div>
+</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>Новая анкета спортсмена</h2>
+    <label class="lbl">ФИО *</label>
+    <input type="text" id="fFio" placeholder="Иванов Иван Иванович">
+    <label class="lbl">Разряд *</label>
+    <select id="fRank">
+      <option value="" disabled selected>Выберите разряд</option>
+      <option>КМС</option>
+      <option>1 разряд</option>
+      <option>2 разряд</option>
+      <option>3 разряд</option>
+      <option>1 юношеский</option>
+      <option>2 юношеский</option>
+      <option>3 юношеский</option>
+      <option>Без разряда</option>
+    </select>
+    <label class="lbl">Яхт-клуб / Секция</label>
+    <input type="text" id="fClub" placeholder="Название клуба">
+    <label class="lbl">Тренер</label>
+    <input type="text" id="fCoach" placeholder="ФИО тренера">
+    <label class="lbl">Класс яхты *</label>
+    <select id="fBoat">
+      <option value="" disabled selected>Выберите класс</option>
+      <option>Ракета-270</option>
+      <option>Оптимист</option>
+      <option>Лазер-радиал</option>
+      <option>Лазер-стандарт</option>
+      <option>Лазер 4.7</option>
+      <option>420</option>
+      <option>Кадет</option>
+      <option>Зум 8</option>
+      <option>Луч</option>
+    </select>
+    <label class="lbl">Город</label>
+    <input type="text" id="fCity" placeholder="Город">
+    <label class="agree">
+      <input type="checkbox" id="fAgree">
+      <span>Я добровольно передаю указанные данные для открытой публикации в базе ВБДСПС и подтверждаю их достоверность (ответственность за передачу данных лежит на отправителе).</span>
+    </label>
+    <div class="status" id="status"></div>
+    <div class="btns">
+      <button class="cancel" id="cancelBtn">Закрыть</button>
+      <button class="send" id="sendBtn">Отправить анкету</button>
+    </div>
+  </div>
+</div>
+<script>
+// ВСТАВЬТЕ СЮДА ССЫЛКУ ВАШЕГО СКРИПТА (заканчивается на /exec)
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxxkfCDN_qxWCm5f3-MZ1UpGlOf0CZ1wyagupdM_vA5yiCc9oHTguSaOONIrOAQVbOK/exec";
+
+let athletes = [];
+const list = document.getElementById("list");
+const q = document.getElementById("q");
+const count = document.getElementById("count");
+const msg = document.getElementById("msg");
+const ICON = '<svg viewBox="0 0 64 64" fill="#fff"><path d="M32 6v36H12L32 6z"/><path d="M36 14v28h16L36 14z" opacity=".85"/><path d="M8 46h48l-6 10H14L8 46z"/></svg>';
+
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"'"}[c]));
+}
+function dash(s){ return s && String(s).trim() ? esc(s) : "—"; }
+
+function card(a){
+  return `<div class="card">
+    <div class="top">
+      <div class="ava">${ICON}</div>
+      <div>
+        <div class="name">${esc(a["ФИО"])}</div>
+        <span class="rank">${esc(a["Разряд"])}</span>
+      </div>
+    </div>
+    <div class="row"><b>Клуб</b><span>${dash(a["Клуб"])}</span></div>
+    <div class="row"><b>Тренер</b><span>${dash(a["Тренер"])}</span></div>
+    <div class="row"><b>Класс яхты</b><span>${dash(a["Класс"])}</span></div>
+    <div class="row"><b>Город</b><span>${dash(a["Город"])}</span></div>
+  </div>`;
+}
+
+function showMsg(text){
+  msg.textContent = text;
+  msg.classList.add("show");
+}
+
+function render(){
+  const t = q.value.trim().toLowerCase();
+  const res = athletes.filter(a =>
+    !t ||
+    String(a["ФИО"]).toLowerCase().includes(t) ||
+    String(a["Разряд"]).toLowerCase().includes(t)
+  );
+  list.innerHTML = res.map(card).join("");
+  count.textContent = "Найдено: " + res.length;
+  if(res.length){
+    msg.classList.remove("show");
+  } else {
+    showMsg(athletes.length ? "\u{1F30A} Никого не найдено. Попробуйте другой запрос." : "Пока нет одобренных анкет.");
+  }
+}
+
+q.addEventListener("input", render);
+
+async function load(){
+  if(SCRIPT_URL.indexOf("ВСТАВЬТЕ") === 0){
+    count.textContent = "";
+    showMsg("\u{2699}\u{FE0F} Вставьте ссылку скрипта в переменную SCRIPT_URL в коде.");
+    return;
+  }
+  count.textContent = "Загрузка...";
+  showMsg("\u{23F3} Загружаем проверенные анкеты из базы...");
+  try {
+    const res = await fetch(SCRIPT_URL);
+    const json = await res.json();
+    if(json.ok){
+      athletes = json.data;
+      render();
+    } else {
+      showMsg("\u{274C} Ошибка загрузки базы: " + json.error);
+    }
+  } catch (e) {
+    showMsg("\u{274C} Не удалось подключиться к базе. Проверьте интернет и ссылку скрипта.");
+  }
+}
+
+const overlay = document.getElementById("overlay");
+const openBtn = document.getElementById("openBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const sendBtn = document.getElementById("sendBtn");
+const statusBox = document.getElementById("status");
+
+openBtn.onclick = () => {
+  statusBox.className = "status";
+  overlay.classList.add("open");
+};
+
+cancelBtn.onclick = () => overlay.classList.remove("open");
+
+sendBtn.onclick = async () => {
+  const fio = document.getElementById("fFio").value.trim();
+  const rank = document.getElementById("fRank").value;
+  const club = document.getElementById("fClub").value.trim();
+  const coach = document.getElementById("fCoach").value.trim();
+  const boat = document.getElementById("fBoat").value;
+  const city = document.getElementById("fCity").value.trim();
+  const agree = document.getElementById("fAgree").checked;
+
+  if(!fio || !rank || !boat){
+    statusBox.textContent = "\u{26A0}\u{FE0F} Заполните обязательные поля (ФИО, Разряд, Класс яхты)";
+    statusBox.className = "status err";
+    return;
+  }
+  if(!agree){
+    statusBox.textContent = "\u{26A0}\u{FE0F} Поставьте галочку согласия на публикацию данных";
+    statusBox.className = "status err";
+    return;
+  }
+
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Отправка...";
+  statusBox.className = "status";
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        "ФИО": fio,
+        "Разряд": rank,
+        "Клуб": club,
+        "Тренер": coach,
+        "Класс": boat,
+        "Город": city
+      })
+    });
+    const json = await res.json();
+    if(json.ok){
+      statusBox.textContent = "\u{2705} Спасибо! Анкета отправлена на проверку администраторам.";
+      statusBox.className = "status ok";
+      document.getElementById("fFio").value = "";
+      document.getElementById("fRank").value = "";
+      document.getElementById("fClub").value = "";
+      document.getElementById("fCoach").value = "";
+      document.getElementById("fBoat").value = "";
+      document.getElementById("fCity").value = "";
+      document.getElementById("fAgree").checked = false;
+    } else {
+      statusBox.textContent = "\u{274C} Ошибка: " + json.error;
+      statusBox.className = "status err";
+    }
+  } catch (e) {
+    statusBox.textContent = "\u{274C} Ошибка сети при отправке.";
+    statusBox.className = "status err";
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.textContent = "Отправить анкету";
+  }
+};
+
+load();
+</script>
+</body>
+</html>
